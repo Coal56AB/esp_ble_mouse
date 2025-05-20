@@ -5,9 +5,16 @@
 #define LED_PIN     21   // GPIO пин светодиода (скорее всего 48)
 #define NUM_LEDS     1   // Один RGB светодиод
 
-#define SHOW_REAL_BATTERY
-// #define RGB_LED
+#define RED_DEFAULT     255
+#define GREEN_DEFAULT   0
+#define BLUE_DEFAULT    255
+#define BRIGHT_DEFAULT  50
+
+// #define DISABLE_RGB_UUID
 // #define DISABLE_USB
+
+#define SHOW_REAL_BATTERY
+#define RGB_LED
 
 BleMouse bleMouse("Ball Mouse");
 
@@ -63,23 +70,25 @@ void setup() {
 #ifdef RGB_LED
   // Запуск мыши — зелёный
   ledControl.begin();
-  ledControl.forceColor(0, 255, 0); // Зеленый
+  // ledControl.forceColor(0, 255, 0); // Зеленый
 #endif//RGB_LED
 
 #ifdef RGB_LED
   // Инициализация BLE - красный
-  ledControl.forceColor(255, 0, 0); // Красный
+  // ledControl.forceColor(255, 0, 0); // Красный
 #endif//RGB_LED
   // Запуск BLE мыши (HID)
   bleMouse.init();
-  // Создаём BLE-сервер для подстветки
-  BLEServer *server = BLEDevice::createServer();
 #ifdef RGB_LED
+#ifndef DISABLE_RGB_UUID
+  // Создаём BLE-сервер для подстветки
+  // BLEServer *server = BLEDevice::createServer();
   // Настройка кастомного сервиса цвета
-  ledControl.setupBLEService(server);
-  // Добавляем UUID нашего сервиса в рекламу (важно до start)
-  BLEAdvertising *advertising = BLEDevice::getAdvertising();
-  advertising->addServiceUUID(COLOR_SERVICE_UUID);
+  ledControl.setupBLEService(bleMouse.server);
+#endif//DISABLE_RGB_UUID
+  // // Добавляем UUID нашего сервиса в рекламу (важно до start)
+  // BLEAdvertising *advertising = BLEDevice::getAdvertising();
+  // advertising->addServiceUUID(COLOR_SERVICE_UUID);
 #endif//RGB_LED
   // Запуск BLE мыши (HID)
   bleMouse.begin();
@@ -87,7 +96,7 @@ void setup() {
 
 #ifdef RGB_LED
   // USB — синий
-  ledControl.forceColor(0, 0, 255);   // Синий
+  // ledControl.forceColor(0, 0, 255);   // Синий
 #endif//RGB_LED
 #ifndef DISABLE_USB
   usbHost.begin();
@@ -102,6 +111,12 @@ void setup() {
 void loop() {
 #ifndef DISABLE_USB
   usbHost.task();
+#else
+  if (bleMouse.isConnected())
+  {
+    bleMouse.move(5, 0, 0);
+    delay(1000);
+  }
 #endif //DISABLE_USB
 
 #ifdef SHOW_REAL_BATTERY

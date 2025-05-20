@@ -25,11 +25,27 @@ public:
   void applyColor();
   void forceColor(uint8_t r, uint8_t g, uint8_t b);
 
+
+#ifndef RED_DEFAULT
+#define RED_DEFAULT 0
+#endif
+
+#ifndef GREEN_DEFAULT
+#define GREEN_DEFAULT 0
+#endif
+
+#ifndef BLUE_DEFAULT
+#define BLUE_DEFAULT 0
+#endif
+
+#ifndef BRIGHT_DEFAULT
+#define BRIGHT_DEFAULT 0
+#endif
 private:
   Adafruit_NeoPixel &rgbLed;
   Preferences preferences;
 
-  int currentR = 0, currentG = 0, currentB = 0, currentBrightness = 50;
+  int currentR = RED_DEFAULT, currentG = GREEN_DEFAULT, currentB = BLUE_DEFAULT, currentBrightness = BRIGHT_DEFAULT;
   BLECharacteristic *colorCharacteristic = nullptr;
 
   void loadSettings();

@@ -30,6 +30,11 @@ BLEDescriptor* createPresentationFormatDescriptor() {
     return desc;
 }
 void LedControl::setupBLEService(BLEServer *server) {
+  if(server == NULL)
+  {
+    return;
+  }
+
     BLEService *colorService = server->createService(COLOR_SERVICE_UUID);
 
     // --- Красный ---
@@ -37,7 +42,7 @@ void LedControl::setupBLEService(BLEServer *server) {
         COLOR_CHAR_R_UUID,
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE
     );
-    rChar->setAccessPermissions(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE);
+    // rChar->setAccessPermissions(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE);
     rChar->setValue(currentR);
     rChar->setCallbacks(new ColorCallbacks(this, 0));
     // rChar->addDescriptor(createUserDescription("Red"));
@@ -47,7 +52,7 @@ void LedControl::setupBLEService(BLEServer *server) {
         COLOR_CHAR_G_UUID,
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE
     );
-    gChar->setAccessPermissions(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE);
+    // gChar->setAccessPermissions(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE);
     gChar->setValue(currentG);
     gChar->setCallbacks(new ColorCallbacks(this, 1));
     // gChar->addDescriptor(createUserDescription("Green"));
@@ -57,7 +62,7 @@ void LedControl::setupBLEService(BLEServer *server) {
         COLOR_CHAR_B_UUID,
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE
     );
-    bChar->setAccessPermissions(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE);
+    // bChar->setAccessPermissions(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE);
     bChar->setValue(currentB);
     bChar->setCallbacks(new ColorCallbacks(this, 2));
     // bChar->addDescriptor(createUserDescription("Blue"));
@@ -67,15 +72,15 @@ void LedControl::setupBLEService(BLEServer *server) {
         COLOR_CHAR_BRIGHTNESS_UUID,
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE
     );
-    brChar->setAccessPermissions(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE);
+    // brChar->setAccessPermissions(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE);
     brChar->setValue(currentBrightness);
     brChar->setCallbacks(new ColorCallbacks(this, 3));
     // brChar->addDescriptor(createUserDescription("Brightness"));
 
     colorService->start();
 
-    BLEAdvertising *advertising = BLEDevice::getAdvertising();
-    advertising->addServiceUUID(COLOR_SERVICE_UUID);
+    // BLEAdvertising *advertising = BLEDevice::getAdvertising();
+    // advertising->addServiceUUID(COLOR_SERVICE_UUID);
 }
 
 
@@ -110,11 +115,7 @@ uint8_t LedControl::correctedBrightness(uint8_t percent) {
 }
 void LedControl::forceColor(uint8_t r, uint8_t g, uint8_t b)
 {
-    currentR = r;
-    currentG = g;
-    currentB = b;
     rgbLed.setPixelColor(0, rgbLed.Color(r, g, b));
     rgbLed.setBrightness(correctedBrightness(currentBrightness));
     rgbLed.show();
-    saveSettings();  // если хочешь сразу сохранять
 }
