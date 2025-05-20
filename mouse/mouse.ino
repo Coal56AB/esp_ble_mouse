@@ -3,23 +3,22 @@
 
 
 #define SHOW_REAL_BATTERY
-
-
-
-#ifdef SHOW_REAL_BATTERY
-#define BATTERY_UPDATE_INTERVAL 5000  // например, 30000 мс = 30 секунд
-#define BATTERY_ADC_PIN 6
-#define BATTERY_VOLTAGE_DIVIDER_RATIO 2.0f
-#define BATTERY_VOLTAGE_MAX 5.0f
-#define BATTERY_VOLTAGE_MIN 3.5f
-#include "BatteryMonitor.h"
-BatteryMonitor battery(BATTERY_ADC_PIN, BATTERY_VOLTAGE_DIVIDER_RATIO, BATTERY_VOLTAGE_MAX, BATTERY_VOLTAGE_MIN);
-
-#endif
+#define DISABLE_USB
 
 
 BleMouse bleMouse("Ball Mouse");
 
+#ifdef SHOW_REAL_BATTERY
+  #define BATTERY_UPDATE_INTERVAL 5000  // например, 30000 мс = 30 секунд
+  #define BATTERY_ADC_PIN 6
+  #define BATTERY_VOLTAGE_DIVIDER_RATIO 2.0f
+  #define BATTERY_VOLTAGE_MAX 5.0f
+  #define BATTERY_VOLTAGE_MIN 3.5f
+  #include "BatteryMonitor.h"
+  BatteryMonitor battery(BATTERY_ADC_PIN, BATTERY_VOLTAGE_DIVIDER_RATIO, BATTERY_VOLTAGE_MAX, BATTERY_VOLTAGE_MIN);
+#endif//SHOW_REAL_BATTERY
+
+#ifndef DISABLE_USB
 // Расширяем класс для обработки USB мыши
 class MyEspUsbHost : public EspUsbHost {
   void onMouseButtons(hid_mouse_report_t report, uint8_t last_buttons) {
@@ -48,8 +47,8 @@ class MyEspUsbHost : public EspUsbHost {
     bleMouse.move(report.x, report.y, report.wheel);
   }
 };
-
 MyEspUsbHost usbHost;
+#endif //DISABLE_USB
 
 void setup() {
   Serial.begin(115200);
@@ -59,12 +58,16 @@ void setup() {
   bleMouse.begin();
   Serial.println("BLE Mouse started");
 
+#ifndef DISABLE_USB
   usbHost.begin();
   Serial.println("USB Host started");
+#endif //DISABLE_USB
 }
 
 void loop() {
+#ifndef DISABLE_USB
   usbHost.task();
+#endif //DISABLE_USB
 
 #ifdef SHOW_REAL_BATTERY
   // чтение уровня батареи
