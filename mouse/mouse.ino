@@ -1,16 +1,17 @@
 #include <BleMouse.h>
 #include "EspUsbHost.h"
 #include <LedControl.h>
+#include "BatteryMonitor.h"
 
 #define LED_PIN     21   // GPIO пин светодиода (скорее всего 48)
 #define NUM_LEDS     1   // Один RGB светодиод
 
 
-// #define DISABLE_RGB_UUID
-// #define DISABLE_USB
+// #define DISABLE_RGB_UUID   // отключить управление диодои по BLE
+// #define DISABLE_USB        // отключить чтение реальной usb мыши
 
-#define SHOW_REAL_BATTERY
-#define RGB_LED
+#define SHOW_REAL_BATTERY     // считывать реальный уровень батареи
+#define RGB_LED               // включить подстветку
 
 BleMouse bleMouse("Ball Mouse");
 
@@ -20,12 +21,12 @@ LedControl ledControl(rgbLed);
 #endif //RGB_LED
 
 #ifdef SHOW_REAL_BATTERY
+// Параметры для считывания уровня батареи
   #define BATTERY_UPDATE_INTERVAL 5000  // например, 30000 мс = 30 секунд
   #define BATTERY_ADC_PIN 6
   #define BATTERY_VOLTAGE_DIVIDER_RATIO 2.0f
   #define BATTERY_VOLTAGE_MAX 5.0f
   #define BATTERY_VOLTAGE_MIN 3.5f
-  #include "BatteryMonitor.h"
   BatteryMonitor battery(BATTERY_ADC_PIN, BATTERY_VOLTAGE_DIVIDER_RATIO, BATTERY_VOLTAGE_MAX, BATTERY_VOLTAGE_MIN);
 #endif//SHOW_REAL_BATTERY
 
@@ -63,51 +64,49 @@ MyEspUsbHost usbHost;
 
 void setup() {
   // Serial.begin(115200);
+  //-----------Запуск мыши — зелёный--------------
 #ifdef RGB_LED
-  // Запуск мыши — зелёный
   ledControl.begin();
-  // ledControl.forceColor(0, 255, 0); // Зеленый
+  ledControl.forceColor(0, 255, 0); // Зеленый
 #endif//RGB_LED
+  delay(500);
 
+  //--------Инициализация BLE - красный-----------
 #ifdef RGB_LED
-  // Инициализация BLE - красный
-  // ledControl.forceColor(255, 0, 0); // Красный
+  ledControl.forceColor(255, 0, 0); // Красный
 #endif//RGB_LED
   // Запуск BLE мыши (HID)
   bleMouse.init();
 #ifdef RGB_LED
 #ifndef DISABLE_RGB_UUID
-  // Создаём BLE-сервер для подстветки
-  // BLEServer *server = BLEDevice::createServer();
-  // Настройка кастомного сервиса цвета
+  // Создаём BLE-сервис для подстветки
   ledControl.setupBLEService(bleMouse.server);
 #endif//DISABLE_RGB_UUID
-  // // Добавляем UUID нашего сервиса в рекламу (важно до start)
-  // BLEAdvertising *advertising = BLEDevice::getAdvertising();
-  // advertising->addServiceUUID(COLOR_SERVICE_UUID);
 #endif//RGB_LED
   // Запуск BLE мыши (HID)
   bleMouse.begin();
   // BLE готов — красный
 
+  //---------Инициализация USB — синий------------
 #ifdef RGB_LED
-  // USB — синий
-  // ledControl.forceColor(0, 0, 255);   // Синий
+  ledControl.forceColor(0, 0, 255);   // Синий
 #endif//RGB_LED
 #ifndef DISABLE_USB
   usbHost.begin();
 #endif
 
+  //---Мышь готова - загружаем сохранённый цвет---
 #ifdef RGB_LED
-  // Загрузка сохранённого цвета
   ledControl.applyColor();
 #endif//RGB_LED
 }
 
 void loop() {
 #ifndef DISABLE_USB
+  // чтение мыши
   usbHost.task();
 #else
+  // симуляция движения мыши
   if (bleMouse.isConnected())
   {
     bleMouse.move(5, 0, 0);
