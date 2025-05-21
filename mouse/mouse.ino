@@ -5,10 +5,6 @@
 #define LED_PIN     21   // GPIO пин светодиода (скорее всего 48)
 #define NUM_LEDS     1   // Один RGB светодиод
 
-#define RED_DEFAULT     255
-#define GREEN_DEFAULT   0
-#define BLUE_DEFAULT    255
-#define BRIGHT_DEFAULT  50
 
 // #define DISABLE_RGB_UUID
 // #define DISABLE_USB

@@ -86,10 +86,10 @@ void LedControl::setupBLEService(BLEServer *server) {
 
 void LedControl::loadSettings() {
     preferences.begin(LED_NAMESPACE, true);
-    currentR = preferences.getUChar("r", 0);
-    currentG = preferences.getUChar("g", 0);
-    currentB = preferences.getUChar("b", 0);
-    currentBrightness = preferences.getUChar("br", 0);
+    currentR = preferences.getUChar("r", RED_DEFAULT);
+    currentG = preferences.getUChar("g", GREEN_DEFAULT);
+    currentB = preferences.getUChar("b", BLUE_DEFAULT);
+    currentBrightness = preferences.getUChar("br", BRIGHT_DEFAULT);
     preferences.end();
 }
 

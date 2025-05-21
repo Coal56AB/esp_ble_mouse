@@ -15,6 +15,11 @@
 #define COLOR_CHAR_B_UUID         "12345678-1234-5678-1234-56789abcdef3"
 #define COLOR_CHAR_BRIGHTNESS_UUID "12345678-1234-5678-1234-56789abcdef4"
 
+#define RED_DEFAULT     255
+#define GREEN_DEFAULT   0
+#define BLUE_DEFAULT    255
+#define BRIGHT_DEFAULT  50
+
 class LedControl {
 public:
   LedControl(Adafruit_NeoPixel &led)
