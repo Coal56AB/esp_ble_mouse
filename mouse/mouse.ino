@@ -25,8 +25,8 @@ LedControl ledControl(rgbLed);
   #define BATTERY_UPDATE_INTERVAL 5000  // например, 30000 мс = 30 секунд
   #define BATTERY_ADC_PIN 6
   #define BATTERY_VOLTAGE_DIVIDER_RATIO 2.0f
-  #define BATTERY_VOLTAGE_MAX 5.0f
-  #define BATTERY_VOLTAGE_MIN 3.5f
+  #define BATTERY_VOLTAGE_MAX 4.2f
+  #define BATTERY_VOLTAGE_MIN 3.0f
   BatteryMonitor battery(BATTERY_ADC_PIN, BATTERY_VOLTAGE_DIVIDER_RATIO, BATTERY_VOLTAGE_MAX, BATTERY_VOLTAGE_MIN);
 #endif//SHOW_REAL_BATTERY
 
@@ -102,6 +102,7 @@ void setup() {
 }
 
 void loop() {
+  handleBleConnectionBlink();
 #ifndef DISABLE_USB
   // чтение мыши
   usbHost.task();
@@ -129,4 +130,28 @@ void loop() {
     }
   }
 #endif
+}
+
+bool lastBleStatus = false;
+bool blinkInProgress = false;
+unsigned long blinkStartTime = 0;
+const unsigned long blinkDuration = 250;  // длительность моргания (мс)
+void handleBleConnectionBlink() {
+  bool currentStatus = bleMouse.isConnected();
+
+  // Обнаружили подключение
+  if (currentStatus && !lastBleStatus) {
+    blinkInProgress = true;
+    blinkStartTime = millis();
+    ledControl.forceBrightness(100);  // максимальная яркость
+    ledControl.forceColor(255, 255, 255);  // белая вспышка
+  }
+
+  // Завершаем вспышку
+  if (blinkInProgress && (millis() - blinkStartTime > blinkDuration)) {
+    blinkInProgress = false;
+    ledControl.applyColor(); // восстанавливаем предыдущий цвет
+  }
+
+  lastBleStatus = currentStatus;
 }

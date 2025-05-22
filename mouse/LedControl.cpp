@@ -116,6 +116,11 @@ uint8_t LedControl::correctedBrightness(uint8_t percent) {
 void LedControl::forceColor(uint8_t r, uint8_t g, uint8_t b)
 {
     rgbLed.setPixelColor(0, rgbLed.Color(r, g, b));
-    rgbLed.setBrightness(correctedBrightness(currentBrightness));
     rgbLed.show();
 }
+void LedControl::forceBrightness(uint8_t percent)
+{
+    rgbLed.setBrightness(correctedBrightness(percent));
+    rgbLed.show();
+}
+
