@@ -164,8 +164,7 @@ void handleBleConnection() {
 
     // перезапуск ble если мышка отключена
     if (!currentStatus) {
-      BLEDevice::deinit(true);  // true — полное удаление и перезапуск
-      ble_init();  
+      esp_restart();  
     }
   }
 
