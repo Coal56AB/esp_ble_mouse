@@ -7,6 +7,7 @@ from bleak import BleakClient, BleakScanner
 import math
 
 TARGET_NAME = "Ball Mouse"
+TARGET_MAC = "50:78:7D:1A:0C:79"
 
 COLOR_SERVICE_UUID          = "12345678-1234-5678-1234-56789abcdef0"
 COLOR_CHAR_R_UUID           = "12345678-1234-5678-1234-56789abcdef1"
@@ -258,15 +259,35 @@ def run_gui():
 
         threading.Thread(target=connect_and_sync).start()
 
+    def disconnect():
+        if ble.client and ble.client.is_connected:
+            def disconnect_task():
+                try:
+                    asyncio.run(ble.client.disconnect())
+                    print("BLE отключено")
+                    root.after(0, lambda: label.config(text="Отключено от устройства"))
+                except Exception as e:
+                    print("Ошибка при отключении:", e)
+                    root.after(0, lambda: label.config(text=f"Ошибка при отключении: {e}"))
+            threading.Thread(target=disconnect_task).start()
+        else:
+            print("Нет активного подключения")
+            label.config(text="Нет активного подключения")
 
+    def on_close():
+        disconnect()
+        root.destroy()
 
-
+    root.protocol("WM_DELETE_WINDOW", on_close)
 
     connect_btn = Button(root, text="Подключиться к мыши", command=on_connect)
     connect_btn.pack(pady=10)
     
     read_btn = Button(root, text="Считать", command=on_read)
     read_btn.pack(pady=10)
+
+    disconnect_button = Button(root, text="Отключиться от мыши", command=disconnect)
+    disconnect_button.pack(pady=5)
 
     root.mainloop()
 
