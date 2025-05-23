@@ -75,17 +75,7 @@ void setup() {
 #ifdef RGB_LED
   ledControl.forceColor(255, 0, 0); // Красный
 #endif//RGB_LED
-  // Запуск BLE мыши (HID)
-  bleMouse.init();
-#ifdef RGB_LED
-#ifndef DISABLE_RGB_UUID
-  // Создаём BLE-сервис для подстветки
-  ledControl.setupBLEService(bleMouse.server);
-#endif//DISABLE_RGB_UUID
-#endif//RGB_LED
-  // Запуск BLE мыши (HID)
-  bleMouse.begin();
-  // BLE готов — красный
+  ble_init();
 
   //---------Инициализация USB — синий------------
 #ifdef RGB_LED
@@ -102,7 +92,7 @@ void setup() {
 }
 
 void loop() {
-  handleBleConnectionBlink();
+  handleBleConnection();
 #ifndef DISABLE_USB
   // чтение мыши
   usbHost.task();
@@ -130,27 +120,59 @@ void loop() {
     }
   }
 #endif
+
+
+  // --- повторный запуск BLE, если отключение ---
+  static bool wasConnected = false;
+  bool currentlyConnected = bleMouse.isConnected();
+  if (wasConnected && !currentlyConnected) {
+    Serial.println("BLE disconnected, restarting advertising...");
+    bleMouse.begin();  // запускаем advertising снова
+  }
+  wasConnected = currentlyConnected;
+}
+
+
+void ble_init()
+{  
+  // Запуск BLE мыши (HID)
+  bleMouse.init();
+#ifdef RGB_LED
+#ifndef DISABLE_RGB_UUID
+  // Создаём BLE-сервис для подстветки
+  ledControl.setupBLEService(bleMouse.server);
+#endif//DISABLE_RGB_UUID
+#endif//RGB_LED
+  // Запуск BLE мыши (HID)
+  bleMouse.begin();
 }
 
 bool lastBleStatus = false;
 bool blinkInProgress = false;
 unsigned long blinkStartTime = 0;
 const unsigned long blinkDuration = 250;  // длительность моргания (мс)
-void handleBleConnectionBlink() {
+void handleBleConnection() {
   bool currentStatus = bleMouse.isConnected();
 
-  // Обнаружили подключение
-  if (currentStatus && !lastBleStatus) {
+  // --- обработка изменения статуса подключения ---
+  if (currentStatus != lastBleStatus) {
+    // Визуальная вспышка
     blinkInProgress = true;
     blinkStartTime = millis();
     ledControl.forceBrightness(100);  // максимальная яркость
-    ledControl.forceColor(255, 255, 255);  // белая вспышка
+    ledControl.forceColor(255, 255, 255);  // белый
+
+    // перезапуск ble если мышка отключена
+    if (!currentStatus) {
+      BLEDevice::deinit(true);  // true — полное удаление и перезапуск
+      ble_init();  
+    }
   }
 
   // Завершаем вспышку
   if (blinkInProgress && (millis() - blinkStartTime > blinkDuration)) {
     blinkInProgress = false;
-    ledControl.applyColor(); // восстанавливаем предыдущий цвет
+    ledControl.applyColor(); // восстановить предыдущий цвет
   }
 
   lastBleStatus = currentStatus;
